@@ -12,13 +12,24 @@ var opts = {
 };
 
 fb_poller.init(opts, function(){
-  fb_poller.getUserFeed(opts.users[0], function(e, feed){
-    var links = [];
-    feed.data.forEach(function(item){
-      if (item.type==='video' || item.type==='link'){
-        links.push(item);
+  fb_poller.dao.getUserInfo(opts.users[0], function(e, info){
+    var params = {
+      access_token : info.access_token,
+      //since : 0,
+      limit : 100,
+      metadata : 1
+    };
+    fb_poller.getUserFeed(opts.users[0], params, function(e, feed){
+      if (e && !feed){
+        return console.log('error:', e);
       }
+      var items = [];
+      feed.data.forEach(function(item){
+        if (item.type==='link' || item.type==='video'){
+          items.push(item);
+        }
+      });
+      console.log(items.length);
     });
-    console.log(links.length);
   });
 });
