@@ -6,10 +6,14 @@ var PollerFactory = require('poller-node');
 
 module.exports = {
 
+  stats:{
+    jobs_built : 0
+  },
+
   opts : {
     poller : {
       do_polling : true,
-      freq : 60*60*1000, 
+      freq : 30*60*1000, 
       beanstalk_opts :{
         resTube : 'default',
         putTube : 'link_processing',
@@ -31,22 +35,25 @@ module.exports = {
     return PollerFactory.build(sub);
   },
 
-  initPoller : function(users){
+  initPoller : function(){
     var self = this;
     var opts = self.opts.poller;
     var poller = this.build();
     var bspool = require('beanstalk-node');
+
     poller.emitter.on('link', function(job){
       bspool.put(job, function(){
+        self.stats.jobs_built+=1;
       });
     });
+
     bspool.emitter.on('log', function(e, msg){
-      console.log(msg);
+      //console.log(msg);
     });
+
     bspool.init(opts.beanstalk_opts, function(){
-      poller.init(opts, function(){
-        console.log('poller initialized');
-      });
+      poller.init(opts);
+      self.pollStats(10000);
     });
   },
 
@@ -67,5 +74,14 @@ module.exports = {
         console.log('backfill initialized');
       });
     });
+  },
+
+  pollStats : function(interval){
+    var self = this;
+    setInterval(function(){
+      console.log('=====================');
+      console.log(self.stats);
+      console.log('=====================');
+    },interval);
   }
 }
