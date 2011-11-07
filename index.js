@@ -37,6 +37,7 @@ module.exports = {
     var poller = this.build();
     var bspool = require('beanstalk-node');
     poller.emitter.on('link', function(job){
+      console.log(job);
       bspool.put(job, function(){
       });
     });
