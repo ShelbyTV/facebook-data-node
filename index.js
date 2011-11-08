@@ -17,7 +17,7 @@ module.exports = {
       beanstalk_opts :{
         resTube : 'default',
         putTube : 'link_processing',
-        pool_size : '200'
+        pool_size : '20'
       }
     },
     backfill : {
@@ -53,7 +53,7 @@ module.exports = {
 
     bspool.init(opts.beanstalk_opts, function(){
       poller.init(opts);
-      self.pollStats(10000);
+      self.pollStats(3000, bspool);
     });
   },
 
@@ -76,11 +76,14 @@ module.exports = {
     });
   },
 
-  pollStats : function(interval){
+  pollStats : function(interval, bspool){
     var self = this;
     setInterval(function(){
       console.log('=====================');
       console.log(self.stats);
+      if (bspool){
+        console.log(bspool.respool.pool.length);
+      }
       console.log('=====================');
     },interval);
   }
