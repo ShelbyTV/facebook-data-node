@@ -17,7 +17,7 @@ module.exports = {
       beanstalk_opts :{
         resTube : 'default',
         putTube : 'link_processing',
-        pool_size : '20'
+        pool_size : '200'
       }
     },
     backfill : {
@@ -39,8 +39,9 @@ module.exports = {
     var self = this;
     var opts = self.opts.poller;
     var poller = this.build();
-    var bspool = require('beanstalk-node');
+    poller.graph.agent.maxSockets = Infinity;
 
+    var bspool = require('beanstalk-node');
     poller.emitter.on('link', function(job){
       bspool.put(job, function(){
         self.stats.jobs_built+=1;
@@ -53,7 +54,7 @@ module.exports = {
 
     bspool.init(opts.beanstalk_opts, function(){
       poller.init(opts);
-      self.pollStats(3000, bspool);
+      self.pollStats(3000, bspool, poller);
     });
   },
 
@@ -76,13 +77,18 @@ module.exports = {
     });
   },
 
-  pollStats : function(interval, bspool){
+  pollStats : function(interval, bspool, poller){
     var self = this;
     setInterval(function(){
       console.log('=====================');
-      console.log(self.stats);
+      if (self.stats.jobs_built){
+        console.log('jobs built:', self.stats.jobs_built);
+      }
       if (bspool){
-        console.log(bspool.respool.pool.length);
+        console.log('bstalk workers:', bspool.respool.pool.length);
+      }
+      if (poller){
+        console.log('http agent queue:', poller.graph.agent.queue.length);
       }
       console.log('=====================');
     },interval);
