@@ -35,10 +35,12 @@ module.exports = {
     return PollerFactory.build(sub);
   },
 
-  initPoller : function(cb){
-
+  initPoller : function(users, cb){
     var self = this;
     var opts = self.opts.poller;
+    if (Array.isArray(users)){
+      opts.users = users;
+    }
     var poller = this.build();
     poller.graph.agent.maxSockets = Infinity;
 
@@ -48,10 +50,6 @@ module.exports = {
       bspool.put(job, function(){
         self.stats.jobs_built+=1;
       });
-    });
-
-    bspool.emitter.on('log', function(e, msg){
-      //console.log(msg);
     });
 
     bspool.init(opts.beanstalk_opts, function(){
