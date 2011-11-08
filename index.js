@@ -35,13 +35,15 @@ module.exports = {
     return PollerFactory.build(sub);
   },
 
-  initPoller : function(){
+  initPoller : function(cb){
+
     var self = this;
     var opts = self.opts.poller;
     var poller = this.build();
     poller.graph.agent.maxSockets = Infinity;
 
     var bspool = require('beanstalk-node');
+
     poller.emitter.on('link', function(job){
       bspool.put(job, function(){
         self.stats.jobs_built+=1;
@@ -55,6 +57,7 @@ module.exports = {
     bspool.init(opts.beanstalk_opts, function(){
       poller.init(opts);
       self.pollStats(3000, bspool, poller);
+      return cb(poller, bspool);
     });
   },
 
@@ -89,6 +92,9 @@ module.exports = {
       }
       if (poller){
         console.log('http agent queue:', poller.graph.agent.queue.length);
+      }
+      if (poller){
+        console.log('http agent sockets:', poller.graph.agent.sockets.length);
       }
       console.log('=====================');
     },interval);
