@@ -14,19 +14,22 @@ module.exports = {
     poller : {
       do_polling : true,
       freq : 30*60*1000, 
-      beanstalk_opts :{
-        resTube : 'default',
-        putTube : 'link_processing',
-        pool_size : '200'
-      }
     },
     backfill : {
       do_polling : false,
-      beanstalk_opts : {
+    }
+  },
+
+  bstalk_opts : {
+    poller : {
+      resTube : 'default',
+      putTube : 'link_processing',
+      pool_size : '200'
+    },
+    backfill : {
         resTube : 'fb_add_user',
         putTube : 'link_processing_high',
         pool_size : '200'
-      }
     }
   },
 
@@ -38,13 +41,14 @@ module.exports = {
   initPoller : function(users, cb){
     var self = this;
     var opts = self.opts.poller;
-    if (Array.isArray(users)){
-      opts.users = users;
-    }
+    var bs_opts = self.bstalk_opts.poller;
+    var bspool = require('beanstalk-node');
     var poller = this.build();
     poller.graph.agent.maxSockets = Infinity;
 
-    var bspool = require('beanstalk-node');
+    if (Array.isArray(users)){
+      opts.users = users;
+    }
 
     poller.emitter.on('link', function(job){
       bspool.put(job, function(){
@@ -52,30 +56,48 @@ module.exports = {
       });
     });
 
-    bspool.init(opts.beanstalk_opts, function(){
+    bspool.init(bs_opts, function(){
       poller.init(opts);
       self.pollStats(3000, bspool, poller);
       return cb(poller, bspool);
     });
   },
 
-  initBackfill : function(){
-    var backfiller = this.build();
+  initBackfill : function(cb){
+    var self = this;
+    var opts = self.opts.backfill;
+    var bs_opts = self.bstalk_opts.backfill;
     var bspool = require('beanstalk-node');
-    bspool.emitter.on('newjob', function(job){
-      backfiller.addUser(job);
-      backfill.backfillUser(job);
-    });
+    var backfiller = this.build();
+    backfiller.graph.agent.maxSockets = Infinity;
+
     backfiller.emitter.on('link', function(job){
       bspool.put(job, function(){
-        console.log('backfill job put');
+        self.stats.jobs_built+=1;
       });
     });
-    bspool.init(this.poller.beanstalk_opts, function(){
-      backfiller.init(opts.backfill, function(){
-        console.log('backfill initialized');
+
+    bspool.emitter.on('newjob', function(job, del){
+      console.log('backpolling:', job.fb_id);
+
+      var info = {
+        "facebook_id" : job.fb_id,
+        "access_token" : job.fb_access_token
+      };
+
+      backfiller.addUser(job.fb_id, info, function(){
+        backfiller.backfillUser(job.fb_id);
       });
+
+      del();
     });
+
+    bspool.init(bs_opts, function(){
+      backfiller.init(opts);
+      self.pollStats(3000, bspool, backfiller);
+      return cb(bspool, backfiller);
+    });
+
   },
 
   pollStats : function(interval, bspool, poller){
