@@ -30,7 +30,7 @@ var kids = [];
 getUserChunks(num_pollers, function(e, chunks){
 
   chunks.forEach(function(chunk){
-    var kid = spawn('node', ['poll_users.js', chunk]);
+    var kid = spawn('node', ['poll.js', chunk]);
     kid.stdout.setEncoding('utf8');
     kid.stderr.setEncoding('utf8');
 
