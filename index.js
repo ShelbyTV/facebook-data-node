@@ -14,6 +14,7 @@ module.exports = {
     poller : {
       do_polling : true,
       freq : 30*60*1000, 
+      //freq : 10*1000, 
     },
     backfill : {
       do_polling : false,
