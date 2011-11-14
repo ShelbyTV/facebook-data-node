@@ -104,20 +104,19 @@ module.exports = {
   pollStats : function(interval, bspool, poller){
     var self = this;
     setInterval(function(){
-      console.log('=====================');
+      var out = '';
       if (self.stats.jobs_built){
-        console.log('jobs built:', self.stats.jobs_built);
+        out+='jobs: '+self.stats.jobs_built;
       }
       if (bspool){
-        console.log('bstalk workers:', bspool.respool.pool.length);
+        out+=' bstalk workers: '+bspool.respool.pool.length;
       }
       if (poller){
-        console.log('http agent queue:', poller.graph.agent.queue.length);
+        out+=' http queue: '+poller.graph.agent.queue.length;
+        out+=' http sockets: '+poller.graph.agent.sockets.length;
+        out+=' current user:'+poller.current+' of '+poller.users.length+' users';
       }
-      if (poller){
-        console.log('http agent sockets:', poller.graph.agent.sockets.length);
-      }
-      console.log('=====================');
+      console.log(out);
     },interval);
   }
 }

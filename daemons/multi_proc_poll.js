@@ -46,35 +46,51 @@ function killKids(){
   });
 }
 
-function initKids() {
-  getUserChunks(function(e, chunks){
-    chunks.forEach(function(chunk){
-      var kid = spawn('node', ['poll.js', chunk]);
-      kid.stdout.setEncoding('utf8');
-      kid.stderr.setEncoding('utf8');
-
-      kid.stdout.on('data', function(data){
-        sys.puts(kid.pid, data);
-        if (data=='poll:completed'){
-          restart();
-        }
-      });
-
-      kid.stderr.on('data', function(data){
-        sys.puts(kid.pid, 'error:', data);
-      });
-
-      kid.on('exit', function(code){
-        if (code !== 0){
-          sys.puts('kid', kid.pid, 'died, with code', code);
-        }
-      });
-
-      kids.push(kid);
-    });
-  });
+function getPrefix(rank){
+  var prefix = '';
+  for (var i=0;i<rank;i++){
+    prefix+='*';
+  }
+  return prefix;
 }
 
+function initKid(chunk, rank){
+  var kid = spawn('node', ['poll.js', chunk]);
+  var pid = kid.pid;
+  var prefix = getPrefix(rank);
+  
+  kid.stdout.setEncoding('utf8');
+  kid.stderr.setEncoding('utf8');
+
+  kid.stdout.on('data', function(data){
+    sys.puts(prefix+' '+pid+": "+data);
+    if (data=='poll:completed'){
+      restart();
+    }
+  });
+
+  kid.stderr.on('data', function(data){
+    sys.puts(prefix+' **ERROR** '+pid+': '+data);
+  });
+
+  kid.on('exit', function(code){
+    if (code !== 0){
+      sys.puts(prefix+' '+pid+' died, with code '+code);
+    }
+  });
+
+  kids.push(kid);
+}
+
+function initKids(chunks) {
+  if (!chunks.length){
+    return;
+  }
+  initKid(chunks.shift(), chunks.length);
+  setTimeout(function(){
+    initKids(chunks);
+  }, 1000);
+}
 
 process.on('SIGTERM', function(){
   console.error('Terminating Kids');
@@ -82,4 +98,7 @@ process.on('SIGTERM', function(){
   process.exit();
 });
 
-initKids();
+
+getUserChunks(function(e, chunks){
+  initKids(chunks);
+});
