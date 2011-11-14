@@ -114,7 +114,9 @@ module.exports = {
       if (poller){
         out+=' http queue: '+poller.graph.agent.queue.length;
         out+=' http sockets: '+poller.graph.agent.sockets.length;
-        out+=' current user:'+poller.current+' of '+poller.users.length+' users';
+        if (poller.users){
+          out+=' current user:'+poller.current+' of '+poller.users.length+' users';
+        }
       }
       console.log(out);
     },interval);
