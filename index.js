@@ -25,7 +25,7 @@ module.exports = {
     poller : {
       resTube : 'default',
       putTube : 'link_processing',
-      pool_size : '200'
+      pool_size : '600'
     },
     backfill : {
         resTube : 'fb_add_user',
