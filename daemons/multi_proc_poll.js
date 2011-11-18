@@ -10,6 +10,7 @@ var dao = require('redis-daos').build('facebook-poller');
 var spawn = require('child_process').spawn;
 var sys = require('sys');
 var kids = [];
+var NUM_COMPLETED = 0;
 
 if (!num_pollers || num_pollers > num_cores || num_pollers < 1){
   console.error('usage : node master_poll.js $num_pollers');
@@ -22,7 +23,7 @@ function getUserChunks(cb){
   var num_chunks = num_pollers;
   var chunks = [];
   dao.getUserSet(function(e, users){
-    users = num_users ? users.splice(0, num_users) : users;
+    //users = num_users ? users.splice(0, num_users) : users;
     var max_chunk_size = Math.round(users.length/num_chunks);
     if (users.length===0) return;
     while (users.length > max_chunk_size){
@@ -36,14 +37,15 @@ function getUserChunks(cb){
 function restart(){
   console.log('restarting');
   killKids(); 
-  initKids(num_pollers);
+  start();
 }
 
 function killKids(){
   console.log('killing', kids.length, 'kids');
-  kids.forEach(function(kid){
-    kid.kill();
-  });
+  while (kids.length){
+    var _kid = kids.shift();
+    _kid.kill();
+  }
 }
 
 function getPrefix(rank){
@@ -65,7 +67,11 @@ function initKid(chunk, rank){
   kid.stdout.on('data', function(data){
     sys.puts(prefix+' '+pid+": "+data);
     if (data=='poll:completed'){
-      restart();
+      NUM_COMPLETED +=1;
+      if (NUM_COMPLETED===kids.length){
+        NUM_COMPLETED=0;
+        restart();
+      }    
     }
   });
 
@@ -98,7 +104,10 @@ process.on('SIGTERM', function(){
   process.exit();
 });
 
+function start(){
+  getUserChunks(function(e, chunks){
+    initKids(chunks);
+  });
+}
 
-getUserChunks(function(e, chunks){
-  initKids(chunks);
-});
+start();
