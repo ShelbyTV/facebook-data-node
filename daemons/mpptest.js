@@ -110,3 +110,6 @@ function start(){
 }
 
 start();
+setInterval(function(){
+  restart();
+}, 10000);
