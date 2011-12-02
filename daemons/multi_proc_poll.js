@@ -11,6 +11,7 @@ var spawn = require('child_process').spawn;
 var sys = require('sys');
 var kids = [];
 var NUM_COMPLETED = 0;
+var FREQ = 30*60*1000;
 
 if (!num_pollers || num_pollers > num_cores || num_pollers < 1){
   console.error('usage : node master_poll.js $num_pollers');
@@ -56,7 +57,7 @@ function getPrefix(rank){
 }
 
 function initKid(chunk, rank){
-  var kid = spawn('node', ['poll.js', chunk]);
+  var kid = spawn('node', ['poll.js', chunk, FREQ]);
   var pid = kid.pid;
   var prefix = getPrefix(rank);
   

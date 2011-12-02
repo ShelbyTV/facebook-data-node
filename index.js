@@ -25,7 +25,7 @@ module.exports = {
     poller : {
       resTube : 'default',
       putTube : 'link_processing',
-      pool_size : '600'
+      pool_size : '100'
     },
     backfill : {
         resTube : 'fb_add_user',
@@ -39,7 +39,13 @@ module.exports = {
     return PollerFactory.build(sub);
   },
 
-  initPoller : function(users, cb){
+  initPoller : function(users, freq, cb){
+    var self = this;
+    if (typeof freq==='function'){
+      var cb = freq;
+    } else {
+      self.opts.poller.freq = freq;
+    }
     var self = this;
     var opts = self.opts.poller;
     var bs_opts = self.bstalk_opts.poller;
@@ -53,6 +59,7 @@ module.exports = {
 
     poller.emitter.on('link', function(job){
       bspool.put(job, function(){
+        console.log('put_job:', job.facebook_status_update.id);
         self.stats.jobs_built+=1;
       });
     });
