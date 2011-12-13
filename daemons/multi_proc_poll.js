@@ -110,9 +110,9 @@ function start(){
   getUserChunks(function(e, chunks){
     initKids(chunks);
   });
-  setTimeout(function(){
+  /*setTimeout(function(){
     process.exit();
-  }, REBOOT_INTERVAL);
+  }, REBOOT_INTERVAL);*/
 }
 
 start();
