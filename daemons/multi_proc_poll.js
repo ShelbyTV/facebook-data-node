@@ -12,7 +12,6 @@ var sys = require('sys');
 var kids = [];
 var NUM_COMPLETED = 0;
 var FREQ = 30*60*1000;
-//var REBOOT_INTERVAL = 12*60*60*1000;
 var REBOOT_INTERVAL = 3000;
 
 if (!num_pollers || num_pollers > num_cores || num_pollers < 1){
@@ -68,7 +67,7 @@ function initKid(chunk, rank){
 
   kid.stdout.on('data', function(data){
     sys.puts(prefix+' '+pid+": "+data);
-    if (data=='poll:completed'){
+    if (data.indexOf('poll:completed')!==-1){
       NUM_COMPLETED +=1;
       if (NUM_COMPLETED===kids.length){
         NUM_COMPLETED=0;
@@ -110,9 +109,6 @@ function start(){
   getUserChunks(function(e, chunks){
     initKids(chunks);
   });
-  /*setTimeout(function(){
-    process.exit();
-  }, REBOOT_INTERVAL);*/
 }
 
 start();
