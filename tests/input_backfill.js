@@ -10,7 +10,7 @@ var _opts = {
 
 var job = {
   "fb_id" : "1319152",
-  "fb_access_token" : "AAABoqCJCWWMBAIFZArAMnLqVrLOZB5RPI9pQMQXxjNzrYVFnYZC2naQR1mSepwZAyGOEafM77w9mISRyhmd4kRs503AgjjgZD"
+  "fb_access_token" : "AAABoqCJCWWMBAIhTfcx8S7kU5kUt5RF54WAX7JywpT463qRZAfI5H6plVEJPrqSJtzARkEYZCj9uHLTOU2BZB4gLtyQdD8ZD"
 };
 
 test_bs_pool.init(_opts, function(){

@@ -81,6 +81,7 @@ module.exports = {
 
     backfiller.emitter.on('link', function(job){
       bspool.put(job, function(){
+        console.log('put_job:', job.facebook_status_update.id);
         self.stats.jobs_built+=1;
       });
     });
@@ -92,12 +93,18 @@ module.exports = {
         "facebook_id" : job.fb_id,
         "access_token" : job.fb_access_token
       };
-
-      backfiller.addUser(job.fb_id, info, function(){
-        backfiller.backfillUser(job.fb_id);
+      backfiller.dao.userIsInSet(job.fb_id, function(e, in_set){
+        backfiller.addUser(job.fb_id, info, function(){
+          if (in_set){
+            console.log('regular backfilling');
+            backfiller.backfillUser(job.fb_id);
+          } else {
+            console.log('first time backfilling');
+            backfiller.firstBackfillUser(job.fb_id, 3, 3);
+          }
+        });
+        del();
       });
-
-      del();
     });
 
     bspool.init(bs_opts, function(){
