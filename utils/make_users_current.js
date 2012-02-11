@@ -1,4 +1,4 @@
-var dao = require('redis-daos').build('facebook-poller');
+var dao = require('redis-daos').build('tumblr-poller');
 
 var complete = 0;
 
