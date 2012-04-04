@@ -59,7 +59,7 @@ module.exports = {
 
     poller.emitter.on('link', function(job){
       bspool.put(job, function(){
-        console.log('put_job:', job.facebook_status_update.id);
+        //console.log('put_job:', job.facebook_status_update.id);
         self.stats.jobs_built+=1;
       });
     });
