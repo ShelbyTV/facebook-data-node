@@ -7,14 +7,14 @@ var PollerFactory = require('poller-node');
 module.exports = {
 
   stats:{
-    jobs_built : 0
+    jobs_built : 0,
+    jobs_built_gt : 0
   },
 
   opts : {
     poller : {
       do_polling : true,
-      freq : 30*60*1000, 
-      //freq : 10*1000, 
+      freq : 30*60*1000 
     },
     backfill : {
       do_polling : false,
@@ -25,11 +25,13 @@ module.exports = {
     poller : {
       resTube : 'default',
       putTube : 'link_processing',
+      putTubeNew : 'link_processing_gt',
       pool_size : '100'
     },
     backfill : {
         resTube : 'fb_add_user',
         putTube : 'link_processing_high',
+        putTubeNew : 'link_processing_high_gt',
         pool_size : '200'
     }
   },
@@ -58,10 +60,17 @@ module.exports = {
     }
 
     poller.emitter.on('link', function(job){
+
       bspool.put(job, function(){
-        console.log('put_job:', job.facebook_status_update.id);
+        //console.log('put_job:', job.facebook_status_update.id);
         self.stats.jobs_built+=1;
       });
+
+      bspool.put(job, function(){
+        //console.log('put_job:', job.facebook_status_update.id);
+        self.stats.jobs_built_gt+=1;
+      }, bs_opts.putTubeNew);
+
     });
 
     bspool.init(bs_opts, function(){
@@ -80,9 +89,15 @@ module.exports = {
     backfiller.graph.agent.maxSockets = Infinity;
 
     backfiller.emitter.on('link', function(job){
+
       bspool.put(job, function(){
         self.stats.jobs_built+=1;
       });
+
+      bspool.put(job, function(){
+        self.stats.jobs_built_gt+=1;
+      }, bs_opts.putTubeNew);
+
     });
 
     bspool.emitter.on('newjob', function(job, del){
@@ -114,6 +129,7 @@ module.exports = {
       var out = '';
       if (self.stats.jobs_built){
         out+='jobs: '+self.stats.jobs_built;
+        out+='jobs_gt: '+self.stats.jobs_built_gt;
       }
       if (bspool){
         out+=' bstalk workers: '+bspool.respool.pool.length;
