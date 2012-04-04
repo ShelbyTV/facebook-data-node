@@ -14,10 +14,9 @@ var NUM_COMPLETED = 0;
 var FREQ = 30*60*1000;
 var REBOOT_INTERVAL = 3000;
 
-if (!num_pollers || num_pollers > num_cores || num_pollers < 1){
+if (num_pollers < 1){
   console.error('usage : node master_poll.js $num_pollers');
-  console.error('$num_pollers : int (must be or equal to or less than the number of cores on this machine)');
-  console.error('# cores :', num_cores);
+  console.error('$num_pollers : int');
   process.exit();
 }
 
@@ -58,7 +57,7 @@ function getPrefix(rank){
 }
 
 function initKid(chunk, rank){
-  var kid = spawn('node', ['poll.js', chunk, FREQ]);
+  var kid = spawn('node', [__dirname+'/poll.js', chunk, FREQ]);
   var pid = kid.pid;
   var prefix = getPrefix(rank);
   
