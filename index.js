@@ -69,7 +69,7 @@ module.exports = {
       bspool.put(job, function(){
         //console.log('put_job:', job.facebook_status_update.id);
         self.stats.jobs_built_gt+=1;
-      }, bs_opts.putTubeNew);
+      }, bs_opts.putTubeNew, true);
 
     });
 
@@ -96,7 +96,7 @@ module.exports = {
 
       bspool.put(job, function(){
         self.stats.jobs_built_gt+=1;
-      }, bs_opts.putTubeNew);
+      }, bs_opts.putTubeNew, true);
 
     });
 
@@ -129,7 +129,7 @@ module.exports = {
       var out = '';
       if (self.stats.jobs_built){
         out+='jobs: '+self.stats.jobs_built;
-        out+='jobs_gt: '+self.stats.jobs_built_gt;
+        out+=' jobs_gt: '+self.stats.jobs_built_gt;
       }
       if (bspool){
         out+=' bstalk workers: '+bspool.respool.pool.length;
